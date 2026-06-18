@@ -1,0 +1,197 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local player = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+
+local Window = Rayfield:CreateWindow({
+   Name = "Football Magnet v5.2 ⚽",
+   LoadingTitle = "Criando Interface...",
+   LoadingSubtitle = "Ímã por Distância (Magnitude)",
+   ConfigurationSaving = { Enabled = false },
+   Discord = { Enabled = false },
+   KeySystem = false
+})
+
+local MainTab = Window:CreateTab("⚽ Bola e Controle", 4483362458)
+local FarmTab = Window:CreateTab("🎯 Hitbox e Farm", 4483362458)
+
+-- Variáveis de controle globais
+_G.ToqueFantasmaPeh = false
+_G.DistanciaIma = 10 -- Começa puxando a 10 studs de distância
+_G.HitboxFantasma = false
+_G.FarmGol = false
+
+-- ================= FUNÇÃO DO BOTÃO FLUTUANTE NA TELA ================= --
+local function CriarBotaoFlutuante()
+    if CoreGui:FindFirstChild("ImaFlutuanteGui") then 
+        CoreGui.ImaFlutuanteGui:Destroy() 
+    end
+
+    local ScreenGui = Instance.new("ScreenGui")
+    local Button = Instance.new("TextButton")
+    local UICorner = Instance.new("UICorner")
+
+    ScreenGui.Name = "ImaFlutuanteGui"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    Button.Name = "AlternarIma"
+    Button.Parent = ScreenGui
+    Button.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+    Button.Position = UDim2.new(0.05, 0, 0.4, 0)
+    Button.Size = UDim2.new(0, 110, 0, 50)
+    Button.Font = Enum.Font.SourceSansBold
+    Button.Text = "ÍMÃ: OFF"
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 18.000
+    Button.Active = true
+    Button.Draggable = true
+
+    UICorner.CornerRadius = UDim.new(0, 12)
+    UICorner.Parent = Button
+
+    Button.MouseButton1Click:Connect(function()
+        _G.ToqueFantasmaPeh = not _G.ToqueFantasmaPeh
+        
+        if _G.ToqueFantasmaPeh then
+            Button.Text = "ÍMÃ: ON"
+            Button.BackgroundColor3 = Color3.fromRGB(75, 255, 75)
+        else
+            Button.Text = "ÍMÃ: OFF"
+            Button.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+        end
+    end)
+end
+
+-- ================= FUNÇÃO DE FARM DO GOL ================= --
+local function PuxarGols()
+    local character = player.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    
+    if hrp and _G.FarmGol then
+        local baseStadium = Workspace:FindFirstChild("Stadium")
+        if baseStadium then
+            local teams = baseStadium:FindFirstChild("Teams")
+            if teams then
+                local homeGoal = teams:FindFirstChild("Home") and teams.Home:FindFirstChild("Goal") and teams.Home.Goal:FindFirstChild("Hitbox")
+                local awayGoal = teams:FindFirstChild("Away") and teams.Away:FindFirstChild("Goal") and teams.Away.Goal:FindFirstChild("Hitbox")
+                
+                if homeGoal then homeGoal.CFrame = hrp.CFrame end
+                if awayGoal then awayGoal.CFrame = hrp.CFrame end
+            end
+        end
+    end
+end
+
+-- ================= LOOP AUTOMÁTICO DE FÍSICA ================= --
+task.spawn(function()
+    while true do
+        local character = player.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        
+        if hrp then
+            -- 1. Travar a bola no PÉ com limite de distância
+            if _G.ToqueFantasmaPeh then
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") and string.sub(obj.Name, 1, 8) == "Football" then
+                        -- Calcula a distância entre você e a bola
+                        local distancia = (hrp.Position - obj.Position).Magnitude
+                        
+                        -- Se a bola estiver dentro do limite escolhido (ex: 10 studs), puxa para o pé
+                        if distancia <= _G.DistanciaIma then
+                            obj.CFrame = hrp.CFrame * CFrame.new(0, -2.5, -1.2)
+                            
+                            if firetouchinterest then
+                                firetouchinterest(hrp, obj, 0)
+                                firetouchinterest(hrp, obj, 1)
+                            end
+                        end
+                    end
+                end
+            end
+
+            -- 2. Hitbox Expander
+            for _, inimigo in pairs(Players:GetPlayers()) do
+                if inimigo ~= player and inimigo.Character then
+                    local alvoHitbox = inimigo.Character:FindFirstChild("Hitbox") or inimigo.Character:FindFirstChild("HumanoidRootPart")
+                    
+                    if alvoHitbox then
+                        if _G.HitboxFantasma then
+                            alvoHitbox.Size = Vector3.new(25, 25, 25)
+                            alvoHitbox.Transparency = 0.85
+                            alvoHitbox.CanCollide = false
+                        else
+                            alvoHitbox.Size = Vector3.new(2, 2, 1)
+                            alvoHitbox.Transparency = 1 
+                        end
+                    end
+                end
+            end
+
+            -- 3. Farm de gols
+            PuxarGols()
+        end
+        
+        task.wait(0.05)
+    end
+end)
+
+
+-- ================= INTERFACE DO MENU ================= --
+
+MainTab:CreateSection("⚡ POSSE DE BOLA")
+
+MainTab:CreateButton({
+   Name = "📱 Criar Botão Flutuante (ÍMÃ)",
+   Callback = function()
+       CriarBotaoFlutuante()
+       Rayfield:Notify({
+           Title = "Botão Criado!",
+           Content = "Você pode arrastar o botão flutuante pela tela.",
+           Duration = 4,
+           Image = 4483362458,
+       })
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Travar Bola no Pé",
+   CurrentValue = false,
+   Flag = "ToggleFootballMagnetFeet",
+   Callback = function(Value)
+       _G.ToqueFantasmaPeh = Value
+   end,
+})
+
+MainTab:CreateSlider({
+   Name = "Distância para Puxar a Bola (Studs)",
+   Range = {5, 20},
+   Increment = 1,
+   Suffix = "Studs",
+   CurrentValue = 10,
+   Flag = "SliderDistancia",
+   Callback = function(Value)
+       _G.DistanciaIma = Value
+   end,
+})
+
+FarmTab:CreateSection("⚙️ FUNÇÕES FANTASMA")
+
+FarmTab:CreateToggle({
+   Name = "Hitbox Gigante (Hitbox Expander)",
+   CurrentValue = false,
+   Flag = "TogglePlayerHitbox",
+   Callback = function(Value)
+       _G.HitboxFantasma = Value
+   end,
+})
+
+FarmTab:CreateToggle({
+   Name = "Farm de Gol (Puxar Gol para Você)",
+   CurrentValue = false,
+   Flag = "ToggleGoalFarm",
+   Callback = function(Value)
+       _G.FarmGol = Value
+   end,
+})
