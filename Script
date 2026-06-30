@@ -5,9 +5,9 @@ local player = Players.LocalPlayer
 local CoreGui = game:GetService("CoreGui")
 
 local Window = Rayfield:CreateWindow({
-   Name = "Football Magnet v5.2 ⚽",
+   Name = "Football Magnet v11.0 ⚽🕶️",
    LoadingTitle = "Criando Interface...",
-   LoadingSubtitle = "Ímã por Distância (Magnitude)",
+   LoadingSubtitle = "Painel Otimizado e Compactável",
    ConfigurationSaving = { Enabled = false },
    Discord = { Enabled = false },
    KeySystem = false
@@ -18,90 +18,211 @@ local FarmTab = Window:CreateTab("🎯 Hitbox e Farm", 4483362458)
 
 -- Variáveis de controle globais
 _G.ToqueFantasmaPeh = false
-_G.DistanciaIma = 10 -- Começa puxando a 10 studs de distância
+_G.DistanciaIma = 150
 _G.HitboxFantasma = false
-_G.FarmGol = false
+_G.GrudarGolHome = false
+_G.GrudarGolAway = false
 
--- ================= FUNÇÃO DO BOTÃO FLUTUANTE NA TELA ================= --
-local function CriarBotaoFlutuante()
-    if CoreGui:FindFirstChild("ImaFlutuanteGui") then 
-        CoreGui.ImaFlutuanteGui:Destroy() 
+-- ================= FUNÇÃO DO PAINEL FLUTUANTE COMPACTÁVEL ================= --
+local function CriarPainelFlutuante()
+    if CoreGui:FindFirstChild("FutPainelGui") then 
+        CoreGui.FutPainelGui:Destroy() 
     end
 
     local ScreenGui = Instance.new("ScreenGui")
-    local Button = Instance.new("TextButton")
-    local UICorner = Instance.new("UICorner")
-
-    ScreenGui.Name = "ImaFlutuanteGui"
+    local MainFrame = Instance.new("Frame")
+    local UICornerMain = Instance.new("UICorner")
+    local UIListLayout = Instance.new("UIListLayout")
+    
+    -- Elementos de Controle de Janela
+    local HeaderFrame = Instance.new("Frame")
+    local TitleLabel = Instance.new("TextLabel")
+    local BtnMinimizar = Instance.new("TextButton")
+    local ContainerBotoes = Instance.new("Frame")
+    local UIListBotoes = Instance.new("UIListLayout")
+    
+    local BtnIma = Instance.new("TextButton")
+    local BtnHitbox = Instance.new("TextButton")
+    local BtnGolHome = Instance.new("TextButton")
+    local BtnGolAway = Instance.new("TextButton")
+    
+    ScreenGui.Name = "FutPainelGui"
     ScreenGui.Parent = CoreGui
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-    Button.Name = "AlternarIma"
-    Button.Parent = ScreenGui
-    Button.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
-    Button.Position = UDim2.new(0.05, 0, 0.4, 0)
-    Button.Size = UDim2.new(0, 110, 0, 50)
-    Button.Font = Enum.Font.SourceSansBold
-    Button.Text = "ÍMÃ: OFF"
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.TextSize = 18.000
-    Button.Active = true
-    Button.Draggable = true
+    -- Frame Principal (Arrastável)
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.BackgroundTransparency = 0.2
+    MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+    MainFrame.Size = UDim2.new(0, 150, 0, 245) -- Ajustado para caber o topo
+    MainFrame.Active = true
+    MainFrame.Draggable = true 
 
-    UICorner.CornerRadius = UDim.new(0, 12)
-    UICorner.Parent = Button
+    UICornerMain.CornerRadius = UDim.new(0, 10)
+    UICornerMain.Parent = MainFrame
 
-    Button.MouseButton1Click:Connect(function()
-        _G.ToqueFantasmaPeh = not _G.ToqueFantasmaPeh
-        
-        if _G.ToqueFantasmaPeh then
-            Button.Text = "ÍMÃ: ON"
-            Button.BackgroundColor3 = Color3.fromRGB(75, 255, 75)
+    UIListLayout.Parent = MainFrame
+    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.Padding = UDim.new(0, 2)
+
+    -- Barra de Topo (Header)
+    HeaderFrame.Name = "HeaderFrame"
+    HeaderFrame.Parent = MainFrame
+    HeaderFrame.BackgroundTransparency = 1
+    HeaderFrame.Size = UDim2.new(1, 0, 0, 30)
+
+    TitleLabel.Parent = HeaderFrame
+    TitleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+    TitleLabel.Position = UDim2.new(0.05, 0, 0, 0)
+    TitleLabel.Font = Enum.Font.SourceSansBold
+    TitleLabel.Text = "MENU FLUTUANTE"
+    TitleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    TitleLabel.TextSize = 12
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    BtnMinimizar.Parent = HeaderFrame
+    BtnMinimizar.Size = UDim2.new(0, 25, 0, 25)
+    BtnMinimizar.Position = UDim2.new(0.8, 0, 0, 2)
+    BtnMinimizar.Font = Enum.Font.SourceSansBold
+    BtnMinimizar.Text = "—"
+    BtnMinimizar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BtnMinimizar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    BtnMinimizar.TextSize = 14
+    local cornerMin = Instance.new("UICorner")
+    cornerMin.CornerRadius = UDim.new(0, 6)
+    cornerMin.Parent = BtnMinimizar
+
+    -- Container que segura os botões de funções
+    ContainerBotoes.Name = "ContainerBotoes"
+    ContainerBotoes.Parent = MainFrame
+    ContainerBotoes.BackgroundTransparency = 1
+    ContainerBotoes.Size = UDim2.new(1, 0, 0, 205)
+
+    UIListBotoes.Parent = ContainerBotoes
+    UIListBotoes.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    UIListBotoes.VerticalAlignment = Enum.VerticalAlignment.Center
+    UIListBotoes.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListBotoes.Padding = UDim.new(0, 6)
+
+    local function estiloBotao(btn, texto, cor)
+        btn.Parent = ContainerBotoes
+        btn.Size = UDim2.new(0, 135, 0, 38)
+        btn.Font = Enum.Font.SourceSansBold
+        btn.Text = texto
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.TextSize = 13
+        btn.BackgroundColor3 = cor
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = btn
+    end
+
+    estiloBotao(BtnIma, "ÍMÃ: OFF", Color3.fromRGB(255, 75, 75))
+    estiloBotao(BtnHitbox, "HITBOX: OFF", Color3.fromRGB(255, 75, 75))
+    estiloBotao(BtnGolHome, "COLAR HOME: OFF", Color3.fromRGB(255, 75, 75))
+    estiloBotao(BtnGolAway, "COLAR AWAY: OFF", Color3.fromRGB(255, 75, 75))
+
+    -- LÓGICA DE ABRIR / FECHAR (MINIMIZAR)
+    local painelAberto = true
+    BtnMinimizar.MouseButton1Click:Connect(function()
+        painelAberto = not painelAberto
+        if painelAberto then
+            ContainerBotoes.Visible = true
+            MainFrame.Size = UDim2.new(0, 150, 0, 245)
+            BtnMinimizar.Text = "—"
+            BtnMinimizar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         else
-            Button.Text = "ÍMÃ: OFF"
-            Button.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+            ContainerBotoes.Visible = false
+            MainFrame.Size = UDim2.new(0, 150, 0, 30) -- Encolhe deixando só a barra do topo
+            BtnMinimizar.Text = "❏"
+            BtnMinimizar.BackgroundColor3 = Color3.fromRGB(75, 150, 75)
         end
     end)
-end
 
--- ================= FUNÇÃO DE FARM DO GOL ================= --
-local function PuxarGols()
-    local character = player.Character
-    local hrp = character and character:FindFirstChild("HumanoidRootPart")
-    
-    if hrp and _G.FarmGol then
-        local baseStadium = Workspace:FindFirstChild("Stadium")
-        if baseStadium then
-            local teams = baseStadium:FindFirstChild("Teams")
-            if teams then
-                local homeGoal = teams:FindFirstChild("Home") and teams.Home:FindFirstChild("Goal") and teams.Home.Goal:FindFirstChild("Hitbox")
-                local awayGoal = teams:FindFirstChild("Away") and teams.Away:FindFirstChild("Goal") and teams.Away.Goal:FindFirstChild("Hitbox")
-                
-                if homeGoal then homeGoal.CFrame = hrp.CFrame end
-                if awayGoal then awayGoal.CFrame = hrp.CFrame end
-            end
+    -- Cliques das Funções
+    BtnIma.MouseButton1Click:Connect(function()
+        _G.ToqueFantasmaPeh = not _G.ToqueFantasmaPeh
+        BtnIma.Text = _G.ToqueFantasmaPeh and "ÍMÃ: ON" or "ÍMÃ: OFF"
+        BtnIma.BackgroundColor3 = _G.ToqueFantasmaPeh and Color3.fromRGB(75, 255, 75) or Color3.fromRGB(255, 75, 75)
+    end)
+
+    BtnHitbox.MouseButton1Click:Connect(function()
+        _G.HitboxFantasma = not _G.HitboxFantasma
+        BtnHitbox.Text = _G.HitboxFantasma and "HITBOX: ON" or "HITBOX: OFF"
+        BtnHitbox.BackgroundColor3 = _G.HitboxFantasma and Color3.fromRGB(75, 255, 75) or Color3.fromRGB(255, 75, 75)
+    end)
+
+    BtnGolHome.MouseButton1Click:Connect(function()
+        _G.GrudarGolHome = not _G.GrudarGolHome
+        BtnGolHome.Text = _G.GrudarGolHome and "COLAR HOME: ON" or "COLAR HOME: OFF"
+        BtnGolHome.BackgroundColor3 = _G.GrudarGolHome and Color3.fromRGB(75, 255, 75) or Color3.fromRGB(255, 75, 75)
+    end)
+
+    BtnGolAway.MouseButton1Click:Connect(function()
+        _G.GrudarGolAway = not _G.GrudarGolAway
+        BtnGolAway.Text = _G.GrudarGolAway and "COLAR AWAY: ON" or "COLAR AWAY: OFF"
+        BtnGolAway.BackgroundColor3 = _G.GrudarGolAway and Color3.fromRGB(75, 255, 75) or Color3.fromRGB(255, 75, 75)
+    end)
+end
+-- ================= MOTOR DE FIXAÇÃO/TELEPORTE DO GOL NO SEU CORPO ================= --
+local function ProcessarGrudeGols(hrp)
+    local teams = Workspace:FindFirstChild("Teams", true)
+    if not teams then return end
+
+    local timeHome = teams:FindFirstChild("Home")
+    if timeHome and timeHome:FindFirstChild("Goal") then
+        local goal = timeHome.Goal
+        local hitbox = goal:FindFirstChild("Hitbox")
+        local intercept = goal:FindFirstChild("InterceptionHitbox")
+
+        if hitbox and not hitbox:GetAttribute("CFrameOriginalGol") then hitbox:SetAttribute("CFrameOriginalGol", hitbox.CFrame) end
+        if intercept and not intercept:GetAttribute("CFrameOriginalInt") then intercept:SetAttribute("CFrameOriginalInt", intercept.CFrame) end
+
+        if _G.GrudarGolHome then
+            if hitbox then hitbox.CFrame = hrp.CFrame end
+            if intercept then intercept.CFrame = hrp.CFrame end
+        else
+            if hitbox and hitbox:GetAttribute("CFrameOriginalGol") then hitbox.CFrame = hitbox:GetAttribute("CFrameOriginalGol") end
+            if intercept and intercept:GetAttribute("CFrameOriginalInt") then intercept.CFrame = intercept:GetAttribute("CFrameOriginalInt") end
+        end
+    end
+
+    local timeAway = teams:FindFirstChild("Away")
+    if timeAway and timeAway:FindFirstChild("Goal") then
+        local goal = timeAway.Goal
+        local hitbox = goal:FindFirstChild("Hitbox")
+        local intercept = goal:FindFirstChild("InterceptionHitbox")
+
+        if hitbox and not hitbox:GetAttribute("CFrameOriginalGol") then hitbox:SetAttribute("CFrameOriginalGol", hitbox.CFrame) end
+        if intercept and not intercept:GetAttribute("CFrameOriginalInt") then intercept:SetAttribute("CFrameOriginalInt", intercept.CFrame) end
+
+        if _G.GrudarGolAway then
+            if hitbox then hitbox.CFrame = hrp.CFrame end
+            if intercept then intercept.CFrame = hrp.CFrame end
+        else
+            if hitbox and hitbox:GetAttribute("CFrameOriginalGol") then hitbox.CFrame = hitbox:GetAttribute("CFrameOriginalGol") end
+            if intercept and intercept:GetAttribute("CFrameOriginalInt") then intercept.CFrame = intercept:GetAttribute("CFrameOriginalInt") end
         end
     end
 end
 
--- ================= LOOP AUTOMÁTICO DE FÍSICA ================= --
+-- ================= LOOP AUTOMÁTICO DE FÍSICA E MOVIMENTO ================= --
 task.spawn(function()
     while true do
         local character = player.Character
         local hrp = character and character:FindFirstChild("HumanoidRootPart")
         
         if hrp then
-            -- 1. Travar a bola no PÉ com limite de distância
+            -- 1. Ímã de Bola Otimizado para Longas Distâncias (150 Studs)
             if _G.ToqueFantasmaPeh then
                 for _, obj in pairs(Workspace:GetDescendants()) do
                     if obj:IsA("BasePart") and string.sub(obj.Name, 1, 8) == "Football" then
-                        -- Calcula a distância entre você e a bola
                         local distancia = (hrp.Position - obj.Position).Magnitude
-                        
-                        -- Se a bola estiver dentro do limite escolhido (ex: 10 studs), puxa para o pé
                         if distancia <= _G.DistanciaIma then
                             obj.CFrame = hrp.CFrame * CFrame.new(0, -2.5, -1.2)
-                            
                             if firetouchinterest then
                                 firetouchinterest(hrp, obj, 0)
                                 firetouchinterest(hrp, obj, 1)
@@ -111,11 +232,10 @@ task.spawn(function()
                 end
             end
 
-            -- 2. Hitbox Expander
+            -- 2. Hitbox Expander de Adversários
             for _, inimigo in pairs(Players:GetPlayers()) do
                 if inimigo ~= player and inimigo.Character then
                     local alvoHitbox = inimigo.Character:FindFirstChild("Hitbox") or inimigo.Character:FindFirstChild("HumanoidRootPart")
-                    
                     if alvoHitbox then
                         if _G.HitboxFantasma then
                             alvoHitbox.Size = Vector3.new(25, 25, 25)
@@ -129,26 +249,23 @@ task.spawn(function()
                 end
             end
 
-            -- 3. Farm de gols
-            PuxarGols()
+            -- 3. Executa a colagem contínua dos Gols
+            ProcessarGrudeGols(hrp)
         end
-        
-        task.wait(0.05)
+        task.wait(0.01)
     end
 end)
 
-
--- ================= INTERFACE DO MENU ================= --
-
-MainTab:CreateSection("⚡ POSSE DE BOLA")
+-- ================= INTERFACE DO MENU (RAYFIELD) ================= --
+MainTab:CreateSection("⚡ CONTROLADORES GLOBAIS")
 
 MainTab:CreateButton({
-   Name = "📱 Criar Botão Flutuante (ÍMÃ)",
+   Name = "📱 Criar Painel Flutuante Tudo-em-Um",
    Callback = function()
-       CriarBotaoFlutuante()
+       CriarPainelFlutuante()
        Rayfield:Notify({
-           Title = "Botão Criado!",
-           Content = "Você pode arrastar o botão flutuante pela tela.",
+           Title = "Painel Criado!",
+           Content = "Use o botão [—] no topo para ocultar os botões!",
            Duration = 4,
            Image = 4483362458,
        })
@@ -159,21 +276,17 @@ MainTab:CreateToggle({
    Name = "Travar Bola no Pé",
    CurrentValue = false,
    Flag = "ToggleFootballMagnetFeet",
-   Callback = function(Value)
-       _G.ToqueFantasmaPeh = Value
-   end,
+   Callback = function(Value) _G.ToqueFantasmaPeh = Value end,
 })
 
 MainTab:CreateSlider({
    Name = "Distância para Puxar a Bola (Studs)",
-   Range = {5, 20},
-   Increment = 1,
+   Range = {5, 150},
+   Increment = 5,
    Suffix = "Studs",
-   CurrentValue = 10,
+   CurrentValue = 150,
    Flag = "SliderDistancia",
-   Callback = function(Value)
-       _G.DistanciaIma = Value
-   end,
+   Callback = function(Value) _G.DistanciaIma = Value end,
 })
 
 FarmTab:CreateSection("⚙️ FUNÇÕES FANTASMA")
@@ -182,16 +295,21 @@ FarmTab:CreateToggle({
    Name = "Hitbox Gigante (Hitbox Expander)",
    CurrentValue = false,
    Flag = "TogglePlayerHitbox",
-   Callback = function(Value)
-       _G.HitboxFantasma = Value
-   end,
+   Callback = function(Value) _G.HitboxFantasma = Value end,
 })
 
 FarmTab:CreateToggle({
-   Name = "Farm de Gol (Puxar Gol para Você)",
+   Name = "Colar Gol HOME em Mim",
    CurrentValue = false,
-   Flag = "ToggleGoalFarm",
-   Callback = function(Value)
-       _G.FarmGol = Value
-   end,
+   Flag = "ToggleGrudarHome",
+   Callback = function(Value) _G.GrudarGolHome = Value end,
 })
+
+FarmTab:CreateToggle({
+   Name = "Colar Gol AWAY em Mim",
+   CurrentValue = false,
+   Flag = "ToggleGrudarAway",
+   Callback = function(Value) _G.GrudarGolAway = Value end,
+})
+
+Rayfield:LoadConfiguration()
